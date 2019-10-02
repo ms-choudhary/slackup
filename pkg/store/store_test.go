@@ -102,13 +102,13 @@ func TestInsertQuery(t *testing.T) {
 			err := setupDatabaseFrom("test.db", migrationFile, tc.fixture)
 			expectNoError(t, err)
 
-			db, err := Init("test.db")
+			store, err := Init("test.db")
 			expectNoError(t, err)
 
-			err = Insert(db, tc.channel, tc.messages)
+			err = store.Insert(tc.channel, tc.messages)
 			expectNoError(t, err)
 
-			retMsgs, err := Query(db, tc.channel, Filter{})
+			retMsgs, err := store.Query(tc.channel, Filter{})
 
 			if !isEqualMessages(tc.messages, retMsgs) {
 				t.Fatalf("expected %v got %v", tc.messages, retMsgs)
@@ -153,10 +153,10 @@ func TestGetChannel(t *testing.T) {
 			err := setupDatabaseFrom("test.db", migrationFile, tc.fixture)
 			expectNoError(t, err)
 
-			db, err := Init("test.db")
+			store, err := Init("test.db")
 			expectNoError(t, err)
 
-			returnId, err := GetChannel(db, tc.project, tc.channel)
+			returnId, err := store.GetChannel(tc.project, tc.channel)
 			expectNoError(t, err)
 
 			if returnId != tc.returnId {

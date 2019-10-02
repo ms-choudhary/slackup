@@ -1,49 +1,47 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
-	"github.com/ms-choudhary/slackup/pkg/api"
+	"github.com/ms-choudhary/slackup/pkg/server"
 	"github.com/ms-choudhary/slackup/pkg/store"
 )
 
+var (
+	port    = flag.Uint("port", 8080, "The port to listen on.  Default 8080.")
+	address = flag.String("address", "127.0.0.1", "The address on the local server to listen to. Default 127.0.0.1")
+	dbFile  = flag.String("dbfile", "", "Sqlite database file")
+)
+
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatalf("invalid arguments: %v", os.Args)
+	flag.Parse()
+
+	if *dbFile == "" {
+		fmt.Fprintln(os.Stderr, "missing required option: dbfile")
+		flag.Usage()
+		os.Exit(1)
 	}
-	dbFile := os.Args[1]
-	db, err := store.Init(dbFile)
+
+	store, err := store.Init(*dbFile)
 	if err != nil {
 		log.Fatalf("failed to init store: %v", err)
 	}
-	defer db.Close()
+	defer store.Close()
 
-	id, err := store.GetChannel(db, "scripbox", "ops-incident")
-
-	if err != nil {
-		log.Fatalf("failed to get channel: %v", err)
+	server := &server.Server{
+		Store: store,
 	}
 
-	msgs := []api.Message{
-		api.Message{
-			User: "mohit",
-			Text: "hello world",
-			Ts:   "123",
-			Comments: []api.Message{
-				api.Message{User: "parthesh", Text: "howdy", Ts: "124"},
-			},
-		},
+	s := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", *address, *port),
+		Handler: server,
 	}
 
-	err = store.Insert(db, id, msgs)
-	if err != nil {
-		log.Fatalf("failed to insert msgs: %v", err)
-	}
-	msgs, err = store.Query(db, id, store.Filter{})
-	if err != nil {
-		log.Fatalf("failed to query msgs: %v", err)
-	}
-	fmt.Println(msgs)
+	log.Printf("starting up server at %s:%d ...", *address, *port)
+
+	log.Fatal(s.ListenAndServe())
 }

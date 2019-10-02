@@ -1,4 +1,4 @@
 #! /bin/bash
 
-rm -f ./slackup.db
-sqlite3 slackup.db < migration.sql
+rm -f "$PWD/slackup.db"
+sqlite3 slackup.db < "$PWD/scripts/migration.sql"
