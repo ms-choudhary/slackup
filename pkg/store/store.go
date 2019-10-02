@@ -127,6 +127,7 @@ func getComments(stmt *sql.Stmt, channel, parentId int) ([]api.Message, error) {
 }
 
 // Query a channel by filter
+// TODO filter is ignored right now
 func Query(db *sql.DB, channel int, filter Filter) ([]api.Message, error) {
 	stmt, err := db.Prepare("SELECT user, text, ts, id FROM message WHERE channel_id = ? AND parent_id = ?")
 	if err != nil {
