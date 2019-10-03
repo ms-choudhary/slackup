@@ -35,6 +35,13 @@ func (s *Server) write(statusCode int, object interface{}, w http.ResponseWriter
 	w.Write(output)
 }
 
+func first(values []string) string {
+	if len(values) > 0 {
+		return values[0]
+	}
+	return ""
+}
+
 func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.Printf("%s %s", req.Method, req.RequestURI)
 	u, err := url.ParseRequestURI(req.RequestURI)
@@ -44,8 +51,6 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	requestParts := strings.Split(u.Path, "/")[1:]
-	//log.Printf("url path: %s", u.Path)
-	//log.Printf("len req parts: %v %d", requestParts, len(requestParts))
 
 	if len(requestParts) != 2 {
 		server.notFound(w, req)
@@ -67,8 +72,8 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 		messages, err := server.Store.Query(channelId,
 			store.Filter{
-				User: q["user"][0],
-				Text: q["text"][0]})
+				User: first(q["user"]),
+				Text: first(q["text"])})
 
 		if err != nil {
 			server.error(err, w)

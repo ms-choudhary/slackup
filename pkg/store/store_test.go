@@ -1,42 +1,20 @@
 package store
 
 import (
-	"database/sql"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ms-choudhary/slackup/pkg/api"
+	"github.com/ms-choudhary/slackup/pkg/util"
 )
 
 var (
+	testDBFile      = "test.db"
 	migrationFile   = "../../scripts/migration.sql"
 	fixturesBaseDir = "../../testdata/db"
 )
-
-func setupDatabaseFrom(dbFile string, sqlFiles ...string) error {
-	os.Remove(dbFile)
-
-	db, err := sql.Open("sqlite3", dbFile)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range sqlFiles {
-		sql, err := ioutil.ReadFile(f)
-		if err != nil {
-			return err
-		}
-
-		_, err = db.Exec(string(sql))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func expectNoError(t *testing.T, err error) {
 	if err != nil {
@@ -99,7 +77,7 @@ func TestInsertQuery(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := setupDatabaseFrom("test.db", migrationFile, tc.fixture)
+			err := util.SetupDatabaseFrom(testDBFile, migrationFile, tc.fixture)
 			expectNoError(t, err)
 
 			store, err := Init("test.db")
@@ -115,6 +93,7 @@ func TestInsertQuery(t *testing.T) {
 			}
 		})
 	}
+	os.Remove(testDBFile)
 }
 
 func TestGetChannel(t *testing.T) {
@@ -150,7 +129,7 @@ func TestGetChannel(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			err := setupDatabaseFrom("test.db", migrationFile, tc.fixture)
+			err := util.SetupDatabaseFrom(testDBFile, migrationFile, tc.fixture)
 			expectNoError(t, err)
 
 			store, err := Init("test.db")
@@ -165,4 +144,5 @@ func TestGetChannel(t *testing.T) {
 		})
 
 	}
+	os.Remove(testDBFile)
 }
