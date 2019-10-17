@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/ms-choudhary/slackup/pkg/server"
+	"github.com/ms-choudhary/slackup/pkg/slack"
 	"github.com/ms-choudhary/slackup/pkg/store"
 )
 
@@ -42,6 +43,8 @@ func main() {
 	}
 
 	log.Printf("starting up server at %s:%d ...", *address, *port)
+
+	slack.SyncNewMessages(store)
 
 	log.Fatal(s.ListenAndServe())
 }

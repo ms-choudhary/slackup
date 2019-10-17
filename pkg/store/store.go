@@ -84,7 +84,7 @@ func (s *Store) GetChannel(project, channel string) (int, error) {
 }
 
 // Insert messages for a channel
-func (s *Store) Insert(channel int, messages []api.Message) error {
+func (s *Store) Insert(channel int, messages []*api.Message) error {
 
 	stmt, err := s.db.Prepare("INSERT INTO message(user, text, ts, channel_id, parent_id) VALUES(?, ?, ?, ?, ?)")
 	if err != nil {
